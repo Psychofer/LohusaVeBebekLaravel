@@ -1,0 +1,34 @@
+services:
+  - type: web
+    name: lohusa-izlem-sistemi
+    env: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: false
+      - key: DB_CONNECTION
+        value: mysql
+      - key: DB_HOST
+        fromDatabase: true
+        name: lohusa-db
+        property: host
+      - key: DB_DATABASE
+        fromDatabase: true
+        name: lohusa-db
+        property: database
+      - key: DB_USERNAME
+        fromDatabase: true
+        name: lohusa-db
+        property: user
+      - key: DB_PASSWORD
+        fromDatabase: true
+        name: lohusa-db
+        property: password
+
+databases:
+  - name: lohusa-db
+    plan: free
+    databaseName: lohusa
