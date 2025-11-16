@@ -1,24 +1,37 @@
-FROM php:8.2-cli
+# ================================
+# Laravel 12 – Render Dockerfile
+# PHP 8.2 - MySQL
+# ================================
+FROM php:8.2-fpm
 
+# Sistem paketleri
 RUN apt-get update && apt-get install -y \
-    git curl libpng-dev libonig-dev libxml2-dev \
-    zip unzip sqlite3 libsqlite3-dev
+    git curl zip unzip libzip-dev \
+    libpng-dev libjpeg-dev libfreetype6-dev \
+    libicu-dev libonig-dev \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install pdo pdo_mysql gd zip intl mbstring
 
-RUN docker-php-ext-install pdo pdo_sqlite mbstring exif pcntl bcmath gd
-
+# Composer yükle
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
+# Çalışma dizini
 WORKDIR /var/www
 
-COPY . /var/www
+# Proje dosyaları
+COPY . .
 
-RUN composer install --no-dev --optimize-autoloader
+# Storage ve cache izinleri
+RUN chmod -R 775 storage bootstrap/cache
 
-RUN chmod -R 755 /var/www/storage /var/www/bootstrap/cache
+# Composer bağımlılıkları
+RUN composer install --no-dev --optimize-autoloader --no-interaction
 
-RUN touch /var/www/database/database.sqlite && \
-    chmod 664 /var/www/database/database.sqlite
+# Laravel APP_KEY üret
+RUN php artisan key:generate --force
 
-EXPOSE 8000
+# Render'ın dinleyeceği port
+EXPOSE 10000
 
-CMD php artisan serve --host=0.0.0.0 --port=8000
+# Laravel'i başlat
+CMD php artisan serve --host=0.0.0.0 --port=10000
